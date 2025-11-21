@@ -46,12 +46,11 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 
 
-const SESSION_SECRET = "mySecretcode";  // SAME secret in both places
 
 const store = MongoStore.create({
     mongoUrl: dbUrl,                
     crypto: {
-        secret: SESSION_SECRET      
+        secret: process.env.SECRET,     
     },
     touchAfter: 24 * 3600,          // seconds
 });
@@ -62,7 +61,7 @@ store.on("error", (err) => {
 
 const sessionOptions = {
     store,
-    secret: SESSION_SECRET,
+    secret:  process.env.SECRET, 
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -102,10 +101,24 @@ app.all(/.*/, (req, res, next) => {
 });
 
 
-app.use((err, req, res, next) => {
-    let { statusCode = 500, message = "Something went wrong!" } = err;
-    res.status(statusCode).render("error.ejs", { err });
+// app.use((err, req, res, next) => {
+//     let { statusCode = 500, message = "Something went wrong!" } = err;
+//     res.status(statusCode).render("error.ejs", { err });
+// });
+
+app.use((err, req, res, next)=>{
+    let {statusCode=500, message="Something went wrong"} = err;
+
+    // DEFENSIVE CHECK: Prevent responding if headers were already sent
+    if (res.headersSent) {
+        return next(err); 
+    }
+
+    res.status(statusCode).render("error.ejs" , {err});
+    // res.status(statusCode).send(message);
 });
+
+
 
 
 app.listen(8080, () => {
