@@ -46,7 +46,7 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 
 
-
+//ALTAS MONGO STORE FOR SESSIONS
 const store = MongoStore.create({
     mongoUrl: dbUrl,                
     crypto: {
@@ -59,6 +59,8 @@ store.on("error", (err) => {
     console.log("SESSION STORE ERROR:", err);
 });
 
+
+//SESSION CONFIGURATION
 const sessionOptions = {
     store,
     secret:  process.env.SECRET, 
@@ -70,6 +72,7 @@ const sessionOptions = {
     }
 };
 
+//SESSION & FLASH
 app.use(session(sessionOptions));
 app.use(flash());
 
@@ -82,7 +85,7 @@ passport.use(new localStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-
+//FLASH
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
@@ -90,7 +93,12 @@ app.use((req, res, next) => {
     next();
 });
 
-// ROUTES
+//HOME ROUTE
+app.get("/", (req , res) => {
+    res.redirect("/listings");
+});
+
+//USE ROUTES
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
@@ -101,11 +109,20 @@ app.all(/.*/, (req, res, next) => {
 });
 
 
+
 // app.use((err, req, res, next) => {
 //     let { statusCode = 500, message = "Something went wrong!" } = err;
 //     res.status(statusCode).render("error.ejs", { err });
 // });
 
+
+//404 ERROR HANDLER
+// app.use((req, res, next) => {
+//   next(new ExpressError(404, "Page Not Found!"));
+// });
+
+
+//GLOBAL ERROR HANDLER
 app.use((err, req, res, next)=>{
     let {statusCode=500, message="Something went wrong"} = err;
 
@@ -120,7 +137,12 @@ app.use((err, req, res, next)=>{
 
 
 
+// app.listen(8080, () => {
+//     console.log("server is listening on port 8080");
+// });
 
-app.listen(8080, () => {
-    console.log("server is listening on port 8080");
+// SERVER
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+    console.log(`server is listening on port ${port}`);
 });
