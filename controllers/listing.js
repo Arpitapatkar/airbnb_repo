@@ -24,15 +24,15 @@ module.exports.showListing = async(req,res) =>{
         populate :{
             path : "author",
         },
-    });
-    await listing.populate("owner");
+    })
+      .populate("owner");
 
     if(!listing){
         req.flash("error","Listing Does Not Exist");
         return res.redirect("/listings");
     }
     console.log(listing);
-    res.render("listings/show.ejs", { listing });
+   return res.render("listings/show.ejs", { listing });
 }
 
 //create post
@@ -81,7 +81,7 @@ module.exports.createPost = async (req, res, next) => {
     await newListing.save();
 
     req.flash("success", "New Listing Created!");
-    res.redirect("/listings");
+    return res.redirect("/listings");
   } catch (err) {
     console.error("Error creating listing:", err);
     req.flash("error", "Failed to create listing. Please try again.");
@@ -125,7 +125,7 @@ module.exports.updatePost = async(req,res) =>{
     }
 
     req.flash("success"," Listing Updated");
-    res.redirect(`/listings/${id}`);
+    return res.redirect(`/listings/${id}`);
 }
 
 //delete post
@@ -134,7 +134,7 @@ module.exports.deletePost = async(req,res) =>{
     let deletedListing =  await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
     req.flash("success"," Listing Deleted");
-    res.redirect("/listings");
+    return res.redirect("/listings");
 }
 
 
@@ -162,5 +162,5 @@ module.exports.findNearby = async (req, res) => {
     },
   });
 
-  res.render("listings/nearby.ejs", { nearbyListings });
+  return res.render("listings/nearby.ejs", { nearbyListings });
 };
